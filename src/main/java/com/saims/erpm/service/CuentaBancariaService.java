@@ -1,6 +1,7 @@
 package com.saims.erpm.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.saims.erpm.dto.CuentaBancariaDtoRequest;
 import com.saims.erpm.dto.CuentaBancariaDtoResponse;
@@ -9,12 +10,55 @@ import com.saims.erpm.model.BancoModel;
 import com.saims.erpm.model.CuentaBancariaModel;
 import com.saims.erpm.model.PersonaModel;
 
+/**
+ * 📌 Interface: CuentaBancariaService
+ * 
+ * 🧾 Descripción:
+ * Define los métodos para la gestión de cuentas bancarias.
+ * Permite crear, consultar y obtener cuentas asociadas a personas y bancos.
+ */
 public interface CuentaBancariaService {
-	
-	CuentaBancariaModel addDatos(PersonaModel personaModel,BancoModel bancoModel,DatosDtoRequest datosDtoRequest);
-	CuentaBancariaDtoResponse addCuentaBancaria(CuentaBancariaDtoRequest cuentaBancariaDtoRequest);
-	CuentaBancariaDtoResponse getCuentaBancaria(Long id);
-	List<CuentaBancariaDtoResponse>getCuentasBancarias(Long id_persona);
-	List<CuentaBancariaDtoResponse>getCuentasBancarias();
 
+    /**
+     * 🔹 Crea una cuenta bancaria o la obtiene si ya existe.
+     * 
+     * @param personaModel Persona asociada a la cuenta
+     * @param bancoModel Banco asociado a la cuenta
+     * @param datosDtoRequest Datos adicionales de la cuenta
+     * @return CuentaBancariaModel entidad persistida o existente
+     */
+    CuentaBancariaModel createOrGet(PersonaModel personaModel,
+                                    BancoModel bancoModel,
+                                    DatosDtoRequest datosDtoRequest);
+
+    /**
+     * 🔹 Crea una cuenta bancaria a partir de un DTO.
+     * 
+     * @param request datos de la cuenta bancaria
+     * @return DTO de respuesta con la cuenta creada
+     */
+    CuentaBancariaDtoResponse createCuentaBancaria(CuentaBancariaDtoRequest request);
+
+    /**
+     * 🔹 Obtiene una cuenta bancaria por su ID.
+     * 
+     * @param id identificador de la cuenta
+     * @return DTO de la cuenta bancaria
+     */
+    CuentaBancariaDtoResponse getCuentaBancaria(Long id);
+
+    /**
+     * 🔹 Obtiene todas las cuentas bancarias de una persona.
+     * 
+     * @param idPersona identificador de la persona
+     * @return lista de cuentas bancarias
+     */
+    List<CuentaBancariaDtoResponse> getCuentasBancarias(Long idPersona);
+
+    /**
+     * 🔹 Obtiene todas las cuentas bancarias registradas.
+     * 
+     * @return lista de cuentas bancarias
+     */
+    List<CuentaBancariaDtoResponse> getCuentasBancarias();
 }

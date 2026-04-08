@@ -12,12 +12,10 @@ public interface AreaDao extends JpaRepository<AreaModel, Long>{
 	@Query(value = "select * from area where nombre=?",nativeQuery=true)
 	AreaModel getArea(String nombre);
 	
-	// Jpa automatizade
+	// Jpa automatizado
 	Optional<AreaModel>findByNombre(String nombre);
 	
 	@Query(value = "select * from area where id=?",nativeQuery=true)
 	AreaModel getId(Long id);
 	
-	
-
 }

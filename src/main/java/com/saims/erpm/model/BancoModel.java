@@ -1,6 +1,6 @@
 package com.saims.erpm.model;
 
-import com.saims.erpm.base.BaseEntity;
+import com.saims.erpm.base.StatusEntity;
 
 // Importaciones de JPA (persistencia)
 import jakarta.persistence.Column;
@@ -44,7 +44,7 @@ import lombok.Setter;
 
 // Define el nombre de la tabla en la base de datos
 @Table(name = "banco")
-public class BancoModel extends BaseEntity{
+public class BancoModel extends StatusEntity{
 
     /**
      * 🏦 Nombre del banco

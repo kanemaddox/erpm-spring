@@ -13,5 +13,7 @@ public interface CentroCostosDao  extends JpaRepository<CentroCostosModel,Long>{
 	CentroCostosModel getCentroCostos(String codigoCentroCostos);
 	
 	Optional<CentroCostosModel> findByCodigo(String codigo);
+	
+	Optional<CentroCostosModel> findByNombre(String nombre);
 
 }

@@ -44,8 +44,8 @@ public class SucursalAreaCentroCostosModel extends BaseEntity{
     /**
      * 👤 Relación con Centro de Costos
      */
-    @ManyToOne
-    @JoinColumn(name = "id_centrocostos", nullable = false)
+    @ManyToOne(optional=true)
+    @JoinColumn(name = "id_centrocostos", nullable = true)
     private CentroCostosModel centrocostos;
 
 }

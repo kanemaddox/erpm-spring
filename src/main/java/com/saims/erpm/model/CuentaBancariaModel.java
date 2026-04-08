@@ -1,24 +1,17 @@
 package com.saims.erpm.model;
 
 // Manejo de fechas
-import java.time.LocalDate;
-
 import com.saims.erpm.base.StatusEntity;
-import com.saims.erpm.enums.EstadoCuenta;
 // Enums
-import com.saims.erpm.enums.TipoCuenta;
 
 // Importaciones JPA
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 // Validaciones
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 // Lombok
 import lombok.AllArgsConstructor;

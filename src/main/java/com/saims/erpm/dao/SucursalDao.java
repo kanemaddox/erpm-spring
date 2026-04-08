@@ -12,5 +12,7 @@ public interface SucursalDao extends JpaRepository<SucursalModel,Long>{
 	SucursalModel getSucursal(String codigo);
 	
 	Optional<SucursalModel> findByCodigo(String codigo);
+	
+	Optional<SucursalModel>findByNombre(String nombre);
 
 }

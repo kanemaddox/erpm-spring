@@ -1,5 +1,10 @@
 package com.saims.erpm.dto;
 
-public class SucursalDtoRequest {
+import lombok.Data;
 
+@Data
+public class SucursalDtoRequest {
+	private String nombre;
+	private String codigo;
+	private String prefijo;
 }

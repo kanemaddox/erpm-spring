@@ -1,6 +1,6 @@
 package com.saims.erpm.model;
 
-import com.saims.erpm.base.BaseEntity;
+import com.saims.erpm.base.StatusEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -27,7 +27,7 @@ import lombok.Setter;
 
 @Entity
 @Table(name = "centrocostos")
-public class CentroCostosModel extends BaseEntity{
+public class CentroCostosModel extends StatusEntity{
 
     @NotBlank(message = "El código es obligatorio")
     @Size(max = 20)

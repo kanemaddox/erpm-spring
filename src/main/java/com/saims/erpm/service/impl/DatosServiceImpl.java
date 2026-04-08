@@ -53,53 +53,59 @@ public class DatosServiceImpl implements DatosService{
 		/**
 		 * Registro para persona
 		 */
-		PersonaModel personaModel = this.personaService.addDatos(datosDtoRequest);
+		PersonaModel personaModel = this.personaService.createOrGet(datosDtoRequest);
 		//System.out.println(personaModel.getNombre());
 		
 		/**
 		 * Registro para banco
 		 */
-		BancoModel bancoModel = this.bancoService.addDatos(datosDtoRequest); 
+		BancoModel bancoModel = this.bancoService.createOrGet(datosDtoRequest); 
 		//System.out.println(bancoModel.getNombre());
 		/**
 		 * Registro de cuenta Bancaria
 		 */
-		CuentaBancariaModel cuentaBancariaModel = this.cuentaBancariaService.addDatos(personaModel, bancoModel, datosDtoRequest);
+		CuentaBancariaModel cuentaBancariaModel = this.cuentaBancariaService.createOrGet(personaModel, bancoModel, datosDtoRequest);
 		//System.out.println(cuentaBancariaModel.getNumero());
 		/**
 		 * registro para cargo
 		 */
-		CargoModel cargoModel = this.cargoService.addDatos(datosDtoRequest);
+		CargoModel cargoModel = this.cargoService.createOrGet(datosDtoRequest);
 		//System.out.println(cargoModel.getNombre());
 		/**
 		 * registro para aprofesion
 		 */
-		ProfesionModel profesionModel = this.profesionService.addProfesion(datosDtoRequest);
+		ProfesionModel profesionModel = this.profesionService.createOrGet(datosDtoRequest);
 		//System.out.println(profesionModel.getNombre());
 		/**
 		 * registro de Area
 		 */
-		AreaModel areaModel = this.areaServise.addDatos(datosDtoRequest);
+		AreaModel areaModel = this.areaServise.createOrGet(datosDtoRequest);
 		//System.out.println(areaModel.getNombre());
 	
 
 		/**
 		 * registro de Centro de costos
+		 * verificamos si en el request el nombre es ninguno si es ninguno mandamos un centro de costos nulo
+		 * caso contrario mandamos a la funcion addDatos 
 		 */
-		CentroCostosModel centroCostosModel = this.centroCostosService.addDatos(datosDtoRequest);
+		CentroCostosModel centroCostosModel = null;
+		if(!datosDtoRequest.getNombreCentroCostos().equals("Ninguno"))
+			centroCostosModel = this.centroCostosService.createOrGet(datosDtoRequest);
 		//System.out.println(centroCostosModel.getNombre());
 		/**
 		 * registro de Sucursal
 		 */
 		
-		SucursalModel sucursalModel = this.sucursalService.addDatos(datosDtoRequest);
+		SucursalModel sucursalModel = this.sucursalService.createOrGet(datosDtoRequest);
 		//System.out.println(sucursalModel.getNombre());
 
 		/**
 		 * registro de relasion entre Sucursal y Area
 		 */
 		
-		SucursalAreaCentroCostosModel sucursalAreaCentroCostosModel = this.sucursalAreaCentroCostosService.addDatos(sucursalModel, areaModel, centroCostosModel);
+		
+		SucursalAreaCentroCostosModel sucursalAreaCentroCostosModel = this.sucursalAreaCentroCostosService.createOrGet(sucursalModel, areaModel, centroCostosModel);
+		
 		//System.out.println(sucursalAreaCentroCostosModel.getFechaCreacion());
 		/**
 		 * registro de emplado de 

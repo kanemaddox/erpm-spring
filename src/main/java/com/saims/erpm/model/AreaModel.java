@@ -1,12 +1,10 @@
 package com.saims.erpm.model;
 
-import com.saims.erpm.base.BaseEntity;
+import com.saims.erpm.base.StatusEntity;
 
 // 📦 Importaciones JPA
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 // 📦 Validaciones (recomendado 🔥)
 import jakarta.validation.constraints.NotBlank;
@@ -30,7 +28,7 @@ import lombok.Setter;
 
 @Entity // Indica que es una entidad JPA
 @Table(name = "area") // Nombre de la tabla en la BD
-public class AreaModel extends BaseEntity{
+public class AreaModel extends StatusEntity{
 
     /**
      * 📛 Nombre del área

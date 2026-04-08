@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import com.saims.erpm.config.Personalizer;
 import com.saims.erpm.dao.PersonaDao;
 import com.saims.erpm.dto.DatosDtoRequest;
 import com.saims.erpm.dto.PersonaDtoRequest;
@@ -18,101 +19,139 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+public class PersonaServiceImpl implements PersonaService {
 
-public class PersonaServiceImpl implements PersonaService{
-	
-	private final PersonaDao personaDao;
-	private final ModelMapper modelMapper;
-	
-	
-	@Transactional
-	public PersonaModel addDatos(DatosDtoRequest datosDtoRequest) {
-		
-		/**
-		 * Registro para persona
-		 * primero verificamos la existencia del IDP, 
-		 * si no existe el IDP
-		 * 		Creamos el modelo de persona con los datos, retorna el numero de ID en la
-		 * 		tabla de la base de datos
-		 * caso contrario
-		 * 		actualizamos los datos de persona
-		 */
-		String idp = datosDtoRequest.getIdp().toUpperCase().trim();
-		
-		PersonaModel personaModel = this.personaDao.findByIdp(idp)
-				.orElseGet(()->{
-					PersonaModel nuevo = new PersonaModel();
-					nuevo.setIdp(idp);
-					nuevo.setNombre(datosDtoRequest.getNombre());
-					nuevo.setPaterno(datosDtoRequest.getPaterno());
-					nuevo.setMaterno(datosDtoRequest.getMaterno());
-					nuevo.setEmail(datosDtoRequest.getEmail().toLowerCase().trim());
-					return (this.personaDao.save(nuevo));
-				});
-		
-		if(!personaModel.getEmail().equals(datosDtoRequest.getEmail().toLowerCase().trim()))
-		{
-			personaModel.setEmail(datosDtoRequest.getEmail().toLowerCase().trim());
-			this.personaDao.save(personaModel);
-		}
-		
-		return(personaModel);
-	}
-	
-	@Transactional
-	public PersonaDtoResponse addPersona(PersonaDtoRequest personaDtoRequest) {
-		
-		/**
-		 * Registro para persona
-		 * primero verificamos la existencia del IDP, 
-		 * si no existe el IDP
-		 * 		Creamos el modelo de persona con los datos, retorna el numero de ID en la
-		 * 		tabla de la base de datos
-		 * caso contrario
-		 * 		actualizamos los datos de persona
-		 */
-		
-		String idp = personaDtoRequest.getIdp().toUpperCase().trim();
-		
-		PersonaModel personaModel = this.personaDao.findByIdp(idp)
-				.orElseGet(()->{
-					PersonaModel nuevo = new PersonaModel();
-					nuevo.setIdp(idp);
-					nuevo.setNombre(personaDtoRequest.getNombre());
-					nuevo.setPaterno(personaDtoRequest.getPaterno());
-					nuevo.setMaterno(personaDtoRequest.getMaterno());
-					nuevo.setEmail(personaDtoRequest.getEmail().toLowerCase().trim());
-					return (this.personaDao.save(nuevo));
-				});
-		
-		return(this.modelMapper.map(personaModel, PersonaDtoResponse.class));
-	}
-	
-	@Transactional
-	public PersonaDtoResponse getPersona(Long id) {
-		
-		PersonaModel personaModel = personaDao.getId(id);
-		
-		return(this.modelMapper.map(personaModel, PersonaDtoResponse.class));
-	}
-	
-	@Transactional
-	public PersonaDtoResponse updatePersona(PersonaDtoResponse personaDtoResponse) {
-	
-		PersonaModel personaModel = this.modelMapper.map(personaDtoResponse, PersonaModel.class);
-		personaDao.save(personaModel);
-		return (this.modelMapper.map(personaModel, PersonaDtoResponse.class));
-	}
-	
-	@Transactional
-	public List<PersonaDtoResponse>getPersonas(){
-		
-		List<PersonaDtoResponse>personas = this.personaDao.findAll().stream()
-				.map(persona -> this.modelMapper.map(persona, PersonaDtoResponse.class))
-				.collect(Collectors.toList());
-		return(personas);
-	}
-	
-	
+    private final PersonaDao personaDao;
+    private final ModelMapper modelMapper;
+    private Personalizer personalizer;
+    /**
+     * Crea una persona o la obtiene si ya existe mediante IDP
+     * 
+     * @param datosDtoRequest datos de entrada
+     * @return PersonaModel persistida
+     */
+    @Transactional
+    public PersonaModel createOrGet(DatosDtoRequest datosDtoRequest) {
+
+        String idp = this.personalizer.normalizer(datosDtoRequest.getIdp());
+
+        PersonaModel personaModel = personaDao.findByIdp(idp)
+                .orElseGet(() -> {
+                    PersonaModel nuevo = new PersonaModel();
+                    nuevo.setIdp(idp);
+                    nuevo.setNombre(this.personalizer.normalizerName(datosDtoRequest.getNombre()));
+                    nuevo.setPaterno(this.personalizer.normalizerName(datosDtoRequest.getPaterno()));
+                    nuevo.setMaterno(this.personalizer.normalizerName(datosDtoRequest.getMaterno()));
+                    nuevo.setEmail(this.personalizer.normalizerLower(datosDtoRequest.getEmail()));
+                    return personaDao.save(nuevo);
+                });
+
+        // Actualización de datos si cambian
+        boolean updated = false;
+
+        String email = this.personalizer.normalizerLower(datosDtoRequest.getEmail());
+
+        if (email != null && !email.equals(personaModel.getEmail())) {
+            personaModel.setEmail(email);
+            updated = true;
+        }
+
+        if (updated) {
+            this.personaDao.save(personaModel);
+        }
+
+        return personaModel;
+    }
+
+    /**
+     * Crea una persona y retorna DTO de respuesta
+     */
+    public PersonaModel createPersona(PersonaDtoRequest request) {
+
+        String idp = this.personalizer.normalizer(request.getIdp());
+
+        return personaDao.findByIdp(idp)
+                .orElseGet(() -> {
+                    PersonaModel nuevo = new PersonaModel();
+                    nuevo.setIdp(idp);
+                    nuevo.setNombre(this.personalizer.normalizerName(request.getNombre()));
+                    nuevo.setPaterno(this.personalizer.normalizerName(request.getPaterno()));
+                    nuevo.setMaterno(this.personalizer.normalizerName(request.getMaterno()));
+                    nuevo.setEmail(this.personalizer.normalizerLower(request.getEmail()));
+                    return personaDao.save(nuevo);
+                });
+    }
+
+    /**
+     * Obtiene una persona por ID
+     */
+    @Transactional
+    public PersonaDtoResponse getById(Long id) {
+        PersonaModel persona = this.personaDao.getId(id);
+        return this.mapToDto(persona);
+    }
+
+    /**
+     * Obtiene una persona por IDP
+     */
+    @Transactional
+    public PersonaDtoResponse findByIdp(String idp) {
+
+        PersonaModel persona = personaDao.findByIdp(this.personalizer.normalizer(idp))
+                .orElseThrow(() -> new RuntimeException("Persona no encontrada"));
+
+        return this.mapToDto(persona);
+    }
+
+    /**
+     * Lista todas las personas
+     */
+    @Transactional
+    public List<PersonaDtoResponse> getAll() {
+
+        return personaDao.findAll().stream()
+                .map(persona -> this.mapToDto(persona))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Actualiza una persona
+     */
+    @Transactional
+    public PersonaDtoResponse update(PersonaDtoRequest request) {
+
+        PersonaModel persona = personaDao.findByIdp(this.personalizer.normalizer(request.getIdp()))
+                .orElseThrow(() -> new RuntimeException("Persona no encontrada"));
+
+        persona.setNombre(this.personalizer.normalizerName(request.getNombre()));
+        persona.setPaterno(this.personalizer.normalizerName(request.getPaterno()));
+        persona.setMaterno(this.personalizer.normalizerName(request.getMaterno()));
+        persona.setEmail(this.personalizer.normalizerLower(request.getEmail()));
+
+        this.personaDao.save(persona);
+
+        return this.mapToDto(persona);
+    }
+
+    /**
+     * Elimina una persona por ID
+     */
+    @Transactional
+    public void delete(Long id) {
+        this.personaDao.deleteById(id);
+    }
+
+    /**
+     * Verifica existencia por IDP
+     */
+    @Transactional
+    public boolean existsByIdp(String idp) {
+        return this.personaDao.findByIdp(this.personalizer.normalizer(idp)).isPresent();
+    }
+    
+    private PersonaDtoResponse mapToDto(PersonaModel persona) {
+    	return (this.modelMapper.map(persona, PersonaDtoResponse.class));
+    }
+    
 
 }
