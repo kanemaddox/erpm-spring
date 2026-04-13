@@ -1,11 +1,11 @@
 package com.saims.erpm.service;
 
 import java.util.List;
-import java.util.Optional;
 
 import com.saims.erpm.dto.CuentaBancariaDtoRequest;
 import com.saims.erpm.dto.CuentaBancariaDtoResponse;
 import com.saims.erpm.dto.DatosDtoRequest;
+import com.saims.erpm.enums.Estado;
 import com.saims.erpm.model.BancoModel;
 import com.saims.erpm.model.CuentaBancariaModel;
 import com.saims.erpm.model.PersonaModel;
@@ -54,11 +54,15 @@ public interface CuentaBancariaService {
      * @return lista de cuentas bancarias
      */
     List<CuentaBancariaDtoResponse> getCuentasBancarias(Long idPersona);
+    
+    List<CuentaBancariaModel> getCuentasBancarias();
 
     /**
      * 🔹 Obtiene todas las cuentas bancarias registradas.
      * 
      * @return lista de cuentas bancarias
      */
-    List<CuentaBancariaDtoResponse> getCuentasBancarias();
+    List<CuentaBancariaDtoResponse> findByAll(Estado estado);
+    
+    CuentaBancariaDtoResponse update(CuentaBancariaDtoResponse response);
 }

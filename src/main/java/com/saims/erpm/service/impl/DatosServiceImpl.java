@@ -1,5 +1,8 @@
 package com.saims.erpm.service.impl;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +15,7 @@ import com.saims.erpm.model.CentroCostosModel;
 import com.saims.erpm.model.CuentaBancariaModel;
 import com.saims.erpm.model.EmpleadoModel;
 import com.saims.erpm.model.PersonaModel;
+import com.saims.erpm.model.PersonaProfesionModel;
 import com.saims.erpm.model.ProfesionModel;
 import com.saims.erpm.model.SucursalAreaCentroCostosModel;
 import com.saims.erpm.model.SucursalModel;
@@ -22,10 +26,12 @@ import com.saims.erpm.service.CentroCostosService;
 import com.saims.erpm.service.CuentaBancariaService;
 import com.saims.erpm.service.DatosService;
 import com.saims.erpm.service.EmpleadoService;
+import com.saims.erpm.service.PersonaProfesionService;
 import com.saims.erpm.service.PersonaService;
 import com.saims.erpm.service.ProfesionService;
 import com.saims.erpm.service.SucursalAreaCentroCostosService;
 import com.saims.erpm.service.SucursalService;
+import com.saims.erpm.service.UsuarioService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -46,41 +52,57 @@ public class DatosServiceImpl implements DatosService{
 	private final SucursalService sucursalService;
 	private final SucursalAreaCentroCostosService sucursalAreaCentroCostosService; 
 	private final EmpleadoService empleadoService;
+	private final UsuarioService usuarioService;
+	private final PersonaProfesionService personaProfesionService;
 	
 	@Transactional
-	public DatosDtoResponse AddDatos(DatosDtoRequest datosDtoRequest) {
+	public DatosDtoResponse AddDatos(DatosDtoRequest datosDtoRequest) throws Exception {
 		
 		/**
 		 * Registro para persona
 		 */
+		//System.out.println("Creando Persona DatosService");
 		PersonaModel personaModel = this.personaService.createOrGet(datosDtoRequest);
-		//System.out.println(personaModel.getNombre());
+		this.usuarioService.createOrGet(personaModel);
+		//System.out.println("Datos Creados "+personaModel.getNombre());
 		
 		/**
 		 * Registro para banco
 		 */
+		
+		System.out.println("Creando Banaco DatosService");
 		BancoModel bancoModel = this.bancoService.createOrGet(datosDtoRequest); 
-		//System.out.println(bancoModel.getNombre());
+		System.out.println("DAtos Creados =========="+bancoModel.getNombre());
 		/**
 		 * Registro de cuenta Bancaria
 		 */
+		System.out.println("Creando Cuenta Bancaria DatosService");
 		CuentaBancariaModel cuentaBancariaModel = this.cuentaBancariaService.createOrGet(personaModel, bancoModel, datosDtoRequest);
-		//System.out.println(cuentaBancariaModel.getNumero());
+		System.out.println("Datos creados============"+ cuentaBancariaModel.getNumero());
+		
+		System.out.println("Creando Profesion DatosService");
+		ProfesionModel profesionModel = this.profesionService.createOrGet(datosDtoRequest);
+		System.out.println("Datos Creados ============"+profesionModel.getNombre());
+		
+		PersonaProfesionModel personaProfesionModel = this.personaProfesionService.createOrGet(personaModel, profesionModel);
+		
+		
 		/**
 		 * registro para cargo
 		 */
+		System.out.println("Creando Cargo DatosService");
 		CargoModel cargoModel = this.cargoService.createOrGet(datosDtoRequest);
-		//System.out.println(cargoModel.getNombre());
+		System.out.println("Datos Creados ==========="+cargoModel.getNombre());
 		/**
 		 * registro para aprofesion
 		 */
-		ProfesionModel profesionModel = this.profesionService.createOrGet(datosDtoRequest);
-		//System.out.println(profesionModel.getNombre());
+		
 		/**
 		 * registro de Area
 		 */
+		System.out.println("==================Creando Area DatosService");
 		AreaModel areaModel = this.areaServise.createOrGet(datosDtoRequest);
-		//System.out.println(areaModel.getNombre());
+		System.out.println("Datos Creados ============"+areaModel.getNombre());
 	
 
 		/**
@@ -88,31 +110,144 @@ public class DatosServiceImpl implements DatosService{
 		 * verificamos si en el request el nombre es ninguno si es ninguno mandamos un centro de costos nulo
 		 * caso contrario mandamos a la funcion addDatos 
 		 */
+		System.out.println("==================Creando Centro de Costos DatosService");
 		CentroCostosModel centroCostosModel = null;
 		if(!datosDtoRequest.getNombreCentroCostos().equals("Ninguno"))
 			centroCostosModel = this.centroCostosService.createOrGet(datosDtoRequest);
-		//System.out.println(centroCostosModel.getNombre());
+		System.out.println("Datos Creados =================="+centroCostosModel.getNombre());
 		/**
 		 * registro de Sucursal
 		 */
 		
+		System.out.println("==================Creando Sucursal DatosService");
 		SucursalModel sucursalModel = this.sucursalService.createOrGet(datosDtoRequest);
-		//System.out.println(sucursalModel.getNombre());
+		System.out.println("Datos Creados =================="+sucursalModel.getNombre());
 
 		/**
 		 * registro de relasion entre Sucursal y Area
 		 */
 		
-		
+		System.out.println("==================Creando Sucursal Area Centro de Costos DatosService");
 		SucursalAreaCentroCostosModel sucursalAreaCentroCostosModel = this.sucursalAreaCentroCostosService.createOrGet(sucursalModel, areaModel, centroCostosModel);
-		
+		System.out.println("Datos Creados ============================ "+sucursalAreaCentroCostosModel.getId());
 		//System.out.println(sucursalAreaCentroCostosModel.getFechaCreacion());
 		/**
 		 * registro de emplado de 
 		 */
-		EmpleadoModel empleadoModel = this.empleadoService.addDatos(personaModel, cargoModel, profesionModel, sucursalModel, datosDtoRequest); 
-		//System.out.println(empleadoModel.getEstado());
+		
+		System.out.println("==================Creando Empleado DatosService");
+		EmpleadoModel empleadoModel = this.empleadoService.addDatos(personaModel, cargoModel, sucursalModel, datosDtoRequest); 
+		System.out.println("Datos Creados ============= "+empleadoModel.getEstado());
 		return null;
+	}
+	
+	@Transactional
+	public List<DatosDtoResponse>getEmpleadosFile(){
+		
+		List<CuentaBancariaModel>cuentas = this.cuentaBancariaService.getCuentasBancarias();
+		List<SucursalAreaCentroCostosModel> sac = this.sucursalAreaCentroCostosService.findAll();
+		List<EmpleadoModel> empleados = this.empleadoService.findAll();
+		List<PersonaModel>personas = this.personaService.findAll();
+		List<PersonaProfesionModel>profesiones = this.personaProfesionService.findAllModel();
+			
+		List<DatosDtoResponse>datos = new ArrayList<DatosDtoResponse>();
+		
+		cuentas.forEach(c->{
+			DatosDtoResponse dato = new DatosDtoResponse();
+			
+			//datos personales 
+			String nombre = c.getPersona().getNombre() +" "+c.getPersona().getPaterno()+" "+c.getPersona().getMaterno();
+			dato.setIdPersona(c.getPersona().getId());
+			dato.setIdp(c.getPersona().getIdp());
+			dato.setNombre(nombre);
+			dato.setEmail(c.getPersona().getEmail());
+			//bancos
+			dato.setBancoNombre(c.getBanco().getNombre());
+			dato.setIdBanco(c.getBanco().getId());
+			dato.setEstadoBanco(c.getBanco().getEstado());
+			
+			//cuenta  bancaria
+			dato.setIdCuentaBancaria(c.getId());
+			dato.setNumero(c.getNumero());
+			dato.setTipoCuenta(c.getTipoCuenta());
+			dato.setEstadoCuentaBancaria(c.getEstado());
+			
+			datos.add(dato);
+			
+		});
+		
+		
+		datos.forEach(d->{
+			empleados.forEach(e->{
+				if(d.getIdPersona().longValue() == e.getPersona().getId().longValue()) {
+					d.setIdpJefe(e.getIdpJefe());
+					d.setTipoEmpleado(e.getTipo());
+					//Sucursal
+					d.setIdSucursal(e.getSucursal().getId());
+					d.setCodigoSucursal(e.getSucursal().getCodigo());
+					d.setNombreSucursal(e.getSucursal().getNombre());
+					d.setPrefijoSucursal(e.getSucursal().getPrefijo());
+					
+					//Cargo
+					d.setIdCargo(e.getCargo().getId());
+					d.setCargoNombre(e.getCargo().getNombre());
+					d.setEstadoCargo(e.getCargo().getEstado());
+					
+				}
+				
+			});
+			
+		});
+		
+		datos.forEach(d->{
+			sac.forEach(s->{
+				if(d.getIdSucursal().longValue() == s.getSucursal().getId().longValue()) {
+					//Centro de Costos
+					d.setIdCentroCostos(s.getCentrocostos().getId());
+					d.setCodigoCentroCostos(s.getCentrocostos().getCodigo());
+					d.setNombreCentroCostos(s.getCentrocostos().getNombre());
+					d.setEstadoCentroCostos(s.getCentrocostos().getEstado());
+					d.setPrefijoCentroCostos(s.getCentrocostos().getPrefijo());
+					
+					//Area
+					d.setIdArea(s.getArea().getId());
+					d.setNombreArea(s.getArea().getNombre());
+					d.setEstadoArea(s.getArea().getEstado());
+					
+				}
+			});
+		});
+		
+		datos.forEach(d->{
+			profesiones.forEach(p->{
+				if(d.getIdPersona().longValue()==p.getPersona().getId().longValue()) {
+					//Profesion
+					
+					d.setIdProfesion(p.getProfesion().getId());
+					d.setProfesionNombre(p.getProfesion().getNombre());
+				}
+			});
+		});
+		
+		datos.forEach(d->{
+			personas.stream()
+			.filter(p->d.getIdpJefe().equals(p.getIdp()))
+			.findFirst()
+			.ifPresent(p->{
+				d.setIdJefe(p.getId());
+				d.setNombreJefe(p.getNombre()+" "+p.getPaterno()+" "+p.getMaterno());
+				
+			});
+		});
+				
+		return datos;
+	}
+	
+	@Transactional
+	public void setAllEstado(boolean estado) {
+		
+		this.empleadoService.setAllEstado(estado);
+		this.usuarioService.setAllEstado(estado);
 	}
 
 }

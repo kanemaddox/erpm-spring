@@ -10,6 +10,6 @@ public class CentroCostosDtoResponse {
 	private String codigo;
 	private String prefijo;
 	private Boolean estado;
-	private String fecha_creacion;
-	private String fecha_actualizacion;
+	private String fechaCreacion;
+	private String fechaActualizacion;
 }

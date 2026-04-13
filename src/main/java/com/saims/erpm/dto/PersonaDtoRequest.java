@@ -13,5 +13,8 @@ public class PersonaDtoRequest {
 	private String paterno;
 	private String materno;
 	private String email;
+	private String fechaNacimiento;
+	private Boolean sexo;
+	private String celular;
 
 }

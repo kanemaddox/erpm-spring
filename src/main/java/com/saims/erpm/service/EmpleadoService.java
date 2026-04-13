@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.saims.erpm.dto.DatosDtoRequest;
+import com.saims.erpm.dto.EmpleadoDtoRequest;
 import com.saims.erpm.dto.EmpleadoDtoResponse;
 import com.saims.erpm.model.CargoModel;
 import com.saims.erpm.model.EmpleadoModel;
@@ -43,10 +44,11 @@ public interface EmpleadoService {
     EmpleadoModel addDatos(
         PersonaModel personaModel,
         CargoModel cargoModel,
-        ProfesionModel profesionModel,
         SucursalModel sucursalModel,
         DatosDtoRequest datosDtoRequest
     );
+    
+    EmpleadoDtoResponse create(EmpleadoDtoRequest request);
 
     /**
      * Obtiene un empleado por su identificador único.
@@ -62,6 +64,8 @@ public interface EmpleadoService {
      * @return Lista de empleados en formato DTO
      */
     List<EmpleadoDtoResponse> getAll();
+    
+    List<EmpleadoModel> findAll();
 
     /**
      * Obtiene una lista paginada de empleados.
@@ -104,4 +108,6 @@ public interface EmpleadoService {
      * @param id ID del empleado a eliminar
      */
     void delete(Long id);
+    
+    void setAllEstado(boolean estado);
 }

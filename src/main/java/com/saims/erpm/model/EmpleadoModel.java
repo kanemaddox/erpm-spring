@@ -49,11 +49,6 @@ public class EmpleadoModel extends StatusEntity{
     @ManyToOne
     @JoinColumn(name = "id_sucursal", nullable = false)
     private SucursalModel sucursal;
-
-    // 🔗 Relación con Profesión
-    @ManyToOne
-    @JoinColumn(name = "id_profesion", nullable = false)
-    private ProfesionModel profesion;
     
     // numero de identificacion del jefe
     @Column(name = "idp_jefe", nullable = false)

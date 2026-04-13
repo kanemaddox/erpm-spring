@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.saims.erpm.config.Personalizer;
 import com.saims.erpm.dao.CargoDao;
 import com.saims.erpm.dto.AreaDtoResponse;
 import com.saims.erpm.dto.CargoDtoRequest;
@@ -36,6 +37,7 @@ public class CargoServiceImpl implements CargoService {
 
     private final CargoDao cargoDao;
     private final ModelMapper modelMapper;
+    private Personalizer personalizer = new Personalizer();
 
     /**
      * 📌 Crea o recupera un Cargo basado en DatosDtoRequest
@@ -48,7 +50,7 @@ public class CargoServiceImpl implements CargoService {
     @Transactional
     public CargoModel createOrGet(DatosDtoRequest datosDtoRequest) {
 
-        String nombreCargo = normalize(datosDtoRequest.getCargoNombre());
+        String nombreCargo = this.personalizer.normalizer(datosDtoRequest.getCargoNombre());
 
         return this.cargoDao.findByNombre(nombreCargo)
                 .orElseGet(() -> {
@@ -64,7 +66,7 @@ public class CargoServiceImpl implements CargoService {
     @Transactional
     public CargoDtoResponse createCargo(CargoDtoRequest cargoDtoRequest) {
 
-        String nombreCargo = normalize(cargoDtoRequest.getNombre());
+        String nombreCargo = this.personalizer.normalizer(cargoDtoRequest.getNombre());
         
         if (existsByNombre(nombreCargo)) {
             throw new RuntimeException("El área ya existe");
@@ -76,7 +78,7 @@ public class CargoServiceImpl implements CargoService {
 
         this.cargoDao.save(cargo);
 
-        return mapToDto(cargo);
+        return modelToResponse(cargo);
     }
     
     /**
@@ -87,7 +89,7 @@ public class CargoServiceImpl implements CargoService {
 
         return this.cargoDao.findAll().stream()
                 .filter(CargoModel::getEstado) // 🔥 solo activos
-                .map(this:: mapToDto)
+                .map(cargo->this.modelToResponse(cargo))
                 .collect(Collectors.toList());
     }
 
@@ -98,7 +100,7 @@ public class CargoServiceImpl implements CargoService {
     public List<CargoDtoResponse> getAll() {
 
         return this.cargoDao.findAll().stream()
-                .map(this::mapToDto)
+                .map(cargo->this.modelToResponse(cargo))
                 .collect(Collectors.toList());
     }
 
@@ -109,7 +111,7 @@ public class CargoServiceImpl implements CargoService {
     public Page<CargoDtoResponse> getAllPaginated(Pageable pageable) {
 
         return this.cargoDao.findAll(pageable)
-                .map(this::mapToDto);
+                .map(cargo->this.modelToResponse(cargo));
     }
 
     /**
@@ -121,7 +123,7 @@ public class CargoServiceImpl implements CargoService {
         CargoModel cargo = this.cargoDao.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cargo no encontrado con ID: " + id));
 
-        return mapToDto(cargo);
+        return this.modelToResponse(cargo);
     }
 
     /**
@@ -130,26 +132,27 @@ public class CargoServiceImpl implements CargoService {
     @Transactional
     public CargoDtoResponse findByNombre(String nombre) {
 
-        String nombreCargo = normalize(nombre);
+        String nombreCargo = this.personalizer.normalizer(nombre);
 
         CargoModel cargo = this.cargoDao.findByNombre(nombreCargo)
                 .orElseThrow(() -> new RuntimeException("Cargo no encontrado: " + nombre));
 
-        return mapToDto(cargo);
+        return this.modelToResponse(cargo);
     }
 
     /**
      * 📌 Actualiza el nombre de un cargo
      */
     @Transactional
-    public CargoDtoResponse updateNombre(Long id, String nuevoNombre) {
+    public CargoDtoResponse update(CargoDtoResponse response) {
 
-        CargoModel cargo = this.cargoDao.findById(id)
-                .orElseThrow(() -> new RuntimeException("Cargo no encontrado con ID: " + id));
+        CargoModel cargo = new CargoModel();
+        cargo.setId(response.getId());
+        cargo.setNombre(this.personalizer.normalizer(response.getNombre()));
+        cargo.setEstado(response.getEstado());
+        this.cargoDao.save(cargo);
 
-        cargo.setNombre(normalize(nuevoNombre));
-
-        return mapToDto(this.cargoDao.save(cargo));
+        return this.modelToResponse(cargo);
     }
 
     /**
@@ -175,17 +178,11 @@ public class CargoServiceImpl implements CargoService {
     public boolean existsByNombre(String nombre) {
         return this.cargoDao.findByNombre(nombre).isPresent();
     }
-    /**
-     * 📌 Normaliza texto (evita duplicados)
-     */
-    private String normalize(String value) {
-        return value.toUpperCase().trim();
-    }
 
     /**
      * 📌 Convierte Entity → DTO
      */
-    private CargoDtoResponse mapToDto(CargoModel cargoModel) {
+    private CargoDtoResponse modelToResponse(CargoModel cargoModel) {
         return this.modelMapper.map(cargoModel, CargoDtoResponse.class);
     }
 }

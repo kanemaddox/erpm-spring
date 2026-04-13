@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.saims.erpm.config.Personalizer;
 import com.saims.erpm.dao.CentroCostosDao;
 import com.saims.erpm.dto.AreaDtoRequest;
 import com.saims.erpm.dto.AreaDtoResponse;
@@ -34,6 +35,7 @@ public class CentroCostosServiceImpl implements CentroCostosService {
 
     private final CentroCostosDao centroCostosDao;
     private final ModelMapper modelMapper;
+    private Personalizer personalizer = new Personalizer();
 
     /**
      * Crea un nuevo Centro de Costos o lo obtiene si ya existe.
@@ -49,15 +51,15 @@ public class CentroCostosServiceImpl implements CentroCostosService {
     @Transactional
     public CentroCostosModel createOrGet(DatosDtoRequest datosDtoRequest) {
 
-        String codigoCentroCostos = normalize(datosDtoRequest.getCodigoCentroCostos());
-        String nombreCentroCostos = normalize(datosDtoRequest.getNombreCentroCostos());
+        String codigoCentroCostos = this.personalizer.normalizer(datosDtoRequest.getCodigoCentroCostos());
+        String nombreCentroCostos = this.personalizer.normalizer(datosDtoRequest.getNombreCentroCostos());
 
         return this.centroCostosDao.findByCodigo(codigoCentroCostos)
                 .orElseGet(() -> {
                     CentroCostosModel nuevo = new CentroCostosModel();
                     nuevo.setCodigo(codigoCentroCostos);
                     nuevo.setNombre(nombreCentroCostos);
-                    nuevo.setPrefijo(generatePrefijo(codigoCentroCostos));
+                    nuevo.setPrefijo(this.personalizer.generatePrefijo(codigoCentroCostos));
                     nuevo.setEstado(true);
                     return this.centroCostosDao.save(nuevo);
                 });
@@ -72,7 +74,7 @@ public class CentroCostosServiceImpl implements CentroCostosService {
     @Transactional
     public CentroCostosDtoResponse createCentroCostos(CentroCostosDtoRequest request) {
 
-        String codigo = normalize(request.getCodigo());
+        String codigo = this.personalizer.normalizer(request.getCodigo());
 
         // Validación: evitar duplicados
         if (this.centroCostosDao.findByCodigo(codigo).isPresent()) {
@@ -81,13 +83,13 @@ public class CentroCostosServiceImpl implements CentroCostosService {
 
         CentroCostosModel centroCosto = new CentroCostosModel();
         centroCosto.setCodigo(codigo);
-        centroCosto.setNombre(normalize(request.getNombre()));
-        centroCosto.setPrefijo(generatePrefijo(codigo));
+        centroCosto.setNombre(this.personalizer.normalizer(request.getNombre()));
+        centroCosto.setPrefijo(this.personalizer.generatePrefijo(codigo));
         centroCosto.setEstado(true);
 
         this.centroCostosDao.save(centroCosto);
 
-        return mapToDto(centroCosto);
+        return this.modelToResponse(centroCosto);
     }
 
     /**
@@ -98,7 +100,7 @@ public class CentroCostosServiceImpl implements CentroCostosService {
         CentroCostosModel centroCosto = this.centroCostosDao.findById(id)
                 .orElseThrow(() -> new RuntimeException("Centro de costos no encontrado con ID: " + id));
 
-        return this.mapToDto(centroCosto);
+        return this.modelToResponse(centroCosto);
     }
 
     /**
@@ -108,7 +110,7 @@ public class CentroCostosServiceImpl implements CentroCostosService {
     public List<CentroCostosDtoResponse> getAll() {
         return this.centroCostosDao.findAll()
                 .stream()
-                .map(centroCosto -> this.mapToDto(centroCosto))
+                .map(centroCosto -> this.modelToResponse(centroCosto))
                 .toList();
     }
 
@@ -118,7 +120,7 @@ public class CentroCostosServiceImpl implements CentroCostosService {
     @Transactional
     public Page<CentroCostosDtoResponse> getAllPaginated(Pageable pageable) {
         return centroCostosDao.findAll(pageable)
-                .map(entity -> this.mapToDto(entity));
+                .map(entity -> this.modelToResponse(entity));
     }
 
     /**
@@ -126,10 +128,10 @@ public class CentroCostosServiceImpl implements CentroCostosService {
      */
     @Transactional
     public CentroCostosDtoResponse findByCodigo(String codigo) {
-        CentroCostosModel centroCostos = centroCostosDao.findByCodigo(normalize(codigo))
+        CentroCostosModel centroCostos = centroCostosDao.findByCodigo(this.personalizer.normalizer(codigo))
                 .orElseThrow(() -> new RuntimeException("No existe centro de costos con código: " + codigo));
 
-        return this.mapToDto(centroCostos);
+        return this.modelToResponse(centroCostos);
     }
 
     /**
@@ -141,10 +143,10 @@ public class CentroCostosServiceImpl implements CentroCostosService {
         CentroCostosModel centroCostos = this.centroCostosDao.findById(response.getId())
                 .orElseThrow(() -> new RuntimeException("Centro de costos no encontrado"));
 
-        centroCostos.setNombre(normalize(response.getNombre()));
+        centroCostos.setNombre(this.personalizer.normalizer(response.getNombre()));
         centroCostosDao.save(centroCostos);
 
-        return this.mapToDto(centroCostos);
+        return this.modelToResponse(centroCostos);
     }
     
     @Transactional
@@ -153,20 +155,20 @@ public class CentroCostosServiceImpl implements CentroCostosService {
         CentroCostosModel centroCostos = this.centroCostosDao.findById(response.getId())
                 .orElseThrow(() -> new RuntimeException("Centro de Costos no encontrada"));
 
-        String nombre = normalize(response.getNombre());
+        String nombre = this.personalizer.normalizer(response.getNombre());
 
         if (!centroCostos.getNombre().equals(nombre) && existsByNombre(nombre)) {
             throw new RuntimeException("Ya existe un Centro de Costos con ese nombre");
         }
 
         centroCostos.setNombre(nombre);
-        centroCostos.setCodigo(normalize(response.getCodigo()));
-        centroCostos.setPrefijo(this.generatePrefijo(response.getCodigo()));
+        centroCostos.setCodigo(this.personalizer.normalizer(response.getCodigo()));
+        centroCostos.setPrefijo(this.personalizer.generatePrefijo(response.getCodigo()));
         centroCostos.setEstado(response.getEstado());
 
         this.centroCostosDao.save(centroCostos);
 
-        return this.mapToDto(centroCostos);
+        return this.modelToResponse(centroCostos);
     }
 
     /**
@@ -185,31 +187,11 @@ public class CentroCostosServiceImpl implements CentroCostosService {
     // =========================
     // 🧠 MÉTODOS AUXILIARES
     // =========================
-
-    /**
-     * Normaliza textos:
-     * - Convierte a mayúsculas
-     * - Elimina espacios en blanco al inicio y final
-     */
-    private String normalize(String value) {
-        return value == null ? null : value.trim().toUpperCase();
-    }
-
-    /**
-     * Genera el prefijo a partir del código.
-     * Ejemplo: "CC01" -> "CC"
-     */
-    private String generatePrefijo(String codigo) {
-        if (codigo == null || codigo.length() < 2) {
-            return codigo;
-        }
-        return codigo.substring(0, 2);
-    }
     
     /**
      * 📌 Convierte Entity → DTO
      */
-    private CentroCostosDtoResponse mapToDto(CentroCostosModel centroCostosModel) {
+    private CentroCostosDtoResponse modelToResponse(CentroCostosModel centroCostosModel) {
     	
         return this.modelMapper.map(centroCostosModel, CentroCostosDtoResponse.class);
     }

@@ -84,7 +84,7 @@ public interface BancoService {
      * @param nuevoNombre Nuevo nombre del banco
      * @return BancoDtoResponse actualizado
      */
-    BancoDtoResponse updateNombre(Long id, String nuevoNombre);
+    BancoDtoResponse updateNombre(BancoDtoResponse response);
 
     /**
      * 🔄 Actualiza completamente los datos de un banco.
@@ -93,5 +93,5 @@ public interface BancoService {
      * @param request DTO con los nuevos datos
      * @return BancoDtoResponse actualizado
      */
-    BancoDtoResponse updateFull(Long id, BancoDtoRequest request);
+    BancoDtoResponse update(BancoDtoResponse response);
 }

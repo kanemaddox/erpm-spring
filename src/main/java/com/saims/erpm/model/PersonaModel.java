@@ -78,4 +78,25 @@ public class PersonaModel extends BaseEntity{
     @Size(max = 150)
     @Column(name = "email", length = 150, unique = true)
     private String email;
+    
+    
+    /**
+     * 📧 fecha de nacimiento
+     */
+    @Column(name = "fecha_nacimineto",nullable = true)
+    private String fechaNacimiento;
+    
+    /**
+     * 📧 sexo
+     */
+    @Column(name = "sexo", nullable = true)
+    private Boolean sexo;
+    
+    /**
+     * 📧 celular
+     */
+    @Column(name = "celular", nullable = true)
+    private String celular;
+    
+    
 }

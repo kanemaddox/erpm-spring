@@ -6,6 +6,6 @@ import lombok.Data;
 public class ProfesionDtoResponse {
 	private Long id;
 	private String nombre;
-	private String fecha_actualizacion;
-	private String fecha_creacion;
+	private String fechaActualizacion;
+	private String fechaCreacion;
 }

@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import com.saims.erpm.dto.DatosDtoRequest;
 import com.saims.erpm.dto.ProfesionDtoRequest;
 import com.saims.erpm.dto.ProfesionDtoResponse;
+import com.saims.erpm.model.PersonaModel;
 import com.saims.erpm.model.ProfesionModel;
 
 /**

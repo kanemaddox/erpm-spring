@@ -90,7 +90,7 @@ public interface CargoService {
      * @param nuevoNombre Nuevo nombre del cargo.
      * @return DTO del cargo actualizado.
      */
-    CargoDtoResponse updateNombre(Long id, String nuevoNombre);
+    CargoDtoResponse update(CargoDtoResponse response);
 
     /**
      * Elimina un cargo por su ID.

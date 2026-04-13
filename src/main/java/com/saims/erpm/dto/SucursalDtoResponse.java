@@ -8,6 +8,6 @@ public class SucursalDtoResponse {
 	private String nombre;
 	private String codigo;
 	private String prefijo;
-	private String fecha_creacion;
-	private String fecha_actualizacion;
+	private String fechaCreacion;
+	private String fechaActualizacion;
 }

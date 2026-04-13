@@ -5,6 +5,8 @@ import com.saims.erpm.base.BaseEntity;
 // Importaciones de JPA (persistencia)
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 // Importaciones de Lombok para reducir código repetitivo
 import lombok.AllArgsConstructor;
@@ -55,5 +57,4 @@ public class ProfesionModel extends BaseEntity{
      */
     @Column(name = "nombre", nullable = false)
     private String nombre;
-
 }

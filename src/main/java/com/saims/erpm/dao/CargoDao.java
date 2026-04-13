@@ -13,5 +13,8 @@ public interface CargoDao extends JpaRepository<CargoModel,Long>{
 	CargoModel getCargo(String nombre);
 	
 	Optional<CargoModel> findByNombre(String nombre);
+	
+	@Query(value = "select * from cargo where id=?",nativeQuery=true)
+	CargoModel getId(Long id);
 
 }

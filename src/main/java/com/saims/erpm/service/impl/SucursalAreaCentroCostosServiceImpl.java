@@ -1,11 +1,13 @@
 package com.saims.erpm.service.impl;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import com.saims.erpm.dao.SucursalAreaCentroCostosDao;
+import com.saims.erpm.dto.SucursalAreaCentroCostosDtoResponse;
 import com.saims.erpm.model.AreaModel;
 import com.saims.erpm.model.CentroCostosModel;
 import com.saims.erpm.model.SucursalAreaCentroCostosModel;
@@ -44,9 +46,10 @@ public class SucursalAreaCentroCostosServiceImpl implements SucursalAreaCentroCo
      */
     @Transactional
     public SucursalAreaCentroCostosModel createOrGet(SucursalModel sucursalModel,AreaModel areaModel,CentroCostosModel centroCostosModel) {
-        Long centroCostosId = (centroCostosModel != null)? centroCostosModel.getId(): null;
-
-        return this.sucursalAreaCentroCostosDao.getSucursalAreaCentroCostos(sucursalModel.getId(),areaModel.getId(),centroCostosId)
+        
+    	Long centroCostosId = (centroCostosModel != null)? centroCostosModel.getId(): null;
+    	
+    	SucursalAreaCentroCostosModel model = this.sucursalAreaCentroCostosDao.getSucursalAreaCentroCostos(sucursalModel.getId(),areaModel.getId(),centroCostosId)
                 .orElseGet(() -> {
                     SucursalAreaCentroCostosModel nuevo = new SucursalAreaCentroCostosModel();
                     nuevo.setSucursal(sucursalModel);
@@ -54,6 +57,7 @@ public class SucursalAreaCentroCostosServiceImpl implements SucursalAreaCentroCo
                     nuevo.setCentrocostos(centroCostosModel);
                     return this.sucursalAreaCentroCostosDao.save(nuevo);
                 });
+        return model;
     }
 
     // =========================
@@ -72,8 +76,17 @@ public class SucursalAreaCentroCostosServiceImpl implements SucursalAreaCentroCo
     /**
      * 📌 Lista todas las relaciones
      */
-    public List<SucursalAreaCentroCostosModel> getAll() {
-        return this.sucursalAreaCentroCostosDao.findAll();
+    public List<SucursalAreaCentroCostosDtoResponse> getAll() {
+    	List<SucursalAreaCentroCostosDtoResponse>values = this.sucursalAreaCentroCostosDao.findAll().stream()
+    			.map(value->this.modelToResponse(value))
+    			.collect(Collectors.toList());
+    	
+    	  return values;
+    }
+    
+    public List<SucursalAreaCentroCostosModel>findAll (){
+    	//return this.sucursalAreaCentroCostosDao.getSucursalesAreasCentroCostos();
+    	return this.sucursalAreaCentroCostosDao.findAll();
     }
 
     /**
@@ -145,6 +158,10 @@ public class SucursalAreaCentroCostosServiceImpl implements SucursalAreaCentroCo
             throw new RuntimeException("No existe la relación con ID: " + id);
         }
         this.sucursalAreaCentroCostosDao.deleteById(id);
+    }
+    
+    private SucursalAreaCentroCostosDtoResponse modelToResponse(SucursalAreaCentroCostosModel value) {
+    	return (this.modelMapper.map(value, SucursalAreaCentroCostosDtoResponse.class));
     }
 
 }

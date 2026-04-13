@@ -10,10 +10,10 @@ import org.springframework.stereotype.Service;
 
 import com.saims.erpm.config.Personalizer;
 import com.saims.erpm.dao.ProfesionDao;
-import com.saims.erpm.dto.AreaDtoResponse;
 import com.saims.erpm.dto.DatosDtoRequest;
 import com.saims.erpm.dto.ProfesionDtoRequest;
 import com.saims.erpm.dto.ProfesionDtoResponse;
+import com.saims.erpm.model.PersonaModel;
 import com.saims.erpm.model.ProfesionModel;
 import com.saims.erpm.service.ProfesionService;
 
@@ -26,7 +26,7 @@ public class ProfesionServiceImpl implements ProfesionService {
 
     private final ProfesionDao profesionDao;
     private final ModelMapper modelMapper;
-    private Personalizer personalizer;
+    private Personalizer personalizer = new Personalizer();
 
     // =========================
     // 🟢 CREATE OR GET
@@ -51,9 +51,9 @@ public class ProfesionServiceImpl implements ProfesionService {
 
         return profesionDao.findByNombre(nombreProfesion)
                 .orElseGet(() -> {
-                    ProfesionModel nuevaProfesion = new ProfesionModel();
-                    nuevaProfesion.setNombre(nombreProfesion);
-                    return profesionDao.save(nuevaProfesion);
+                    ProfesionModel nuevo = new ProfesionModel();
+                    nuevo.setNombre(nombreProfesion);
+                    return profesionDao.save(nuevo);
                 });
     }
 
@@ -92,7 +92,7 @@ public class ProfesionServiceImpl implements ProfesionService {
 
         return profesionDao.findAll()
                 .stream()
-                .map(profesion -> this.mapToDto(profesion))
+                .map(profesion -> this.modelToResponse(profesion))
                 .collect(Collectors.toList());
     }
 
@@ -108,7 +108,7 @@ public class ProfesionServiceImpl implements ProfesionService {
         ProfesionModel profesion = this.profesionDao.findById(id)
                 .orElseThrow(() -> new RuntimeException("Profesión no encontrada con ID: " + id));
 
-        return this.mapToDto(profesion);
+        return this.modelToResponse(profesion);
     }
 
     /**
@@ -125,7 +125,7 @@ public class ProfesionServiceImpl implements ProfesionService {
         ProfesionModel profesion = profesionDao.findByNombre(nombreNormalizado)
                 .orElseThrow(() -> new RuntimeException("Profesión no encontrada: " + nombre));
 
-        return this.mapToDto(profesion);
+        return this.modelToResponse(profesion);
     }
     
     /**
@@ -134,7 +134,7 @@ public class ProfesionServiceImpl implements ProfesionService {
     @Transactional
     public Page<ProfesionDtoResponse> getAllPaginated(Pageable pageable) {
         return this.profesionDao.findAll(pageable)
-                .map(area -> this.mapToDto(area));
+                .map(area -> this.modelToResponse(area));
     }
 
     // =========================
@@ -157,7 +157,7 @@ public class ProfesionServiceImpl implements ProfesionService {
 
         profesion.setNombre(nombreNormalizado);
 
-        return this.mapToDto(profesion);
+        return this.modelToResponse(profesion);
     }
 
     // =========================
@@ -190,7 +190,7 @@ public class ProfesionServiceImpl implements ProfesionService {
      * @return nombre normalizado
      */
     
-    private ProfesionDtoResponse mapToDto(ProfesionModel profesion) {
+    private ProfesionDtoResponse modelToResponse(ProfesionModel profesion) {
     	return (this.modelMapper.map(profesion, ProfesionDtoResponse.class));
     }
     

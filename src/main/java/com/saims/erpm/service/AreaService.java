@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import com.saims.erpm.dto.AreaDtoRequest;
 import com.saims.erpm.dto.AreaDtoResponse;
 import com.saims.erpm.dto.DatosDtoRequest;
+import com.saims.erpm.enums.Estado;
 import com.saims.erpm.model.AreaModel;
 
 /**
@@ -42,16 +43,10 @@ public interface AreaService {
     AreaDtoResponse getById(Long id);
 
     /**
-     * 📋 Lista todas las áreas activas
-     * @return Lista de áreas activas
-     */
-    List<AreaDtoResponse> getAllActive();
-
-    /**
      * 📋 Lista todas las áreas
      * @return Lista completa de áreas
      */
-    List<AreaDtoResponse> getAll();
+    List<AreaDtoResponse> findByAll(Estado estado);
 
     /**
      * 🔎 Busca un área por nombre
@@ -73,7 +68,7 @@ public interface AreaService {
      * @param nuevoNombre Nuevo nombre
      * @return Área actualizada
      */
-    AreaDtoResponse updateNombre(Long id, String nuevoNombre);
+    AreaDtoResponse updateNombre(AreaDtoResponse response);
 
     /**
      * 🔄 Actualiza completamente un área
@@ -81,7 +76,7 @@ public interface AreaService {
      * @param request Nuevos datos
      * @return Área actualizada
      */
-    AreaDtoResponse updateFull(Long id, AreaDtoRequest request);
+    AreaDtoResponse update(AreaDtoResponse response);
 
     /**
      * ❌ Elimina un área por ID

@@ -14,5 +14,8 @@ public interface SucursalDao extends JpaRepository<SucursalModel,Long>{
 	Optional<SucursalModel> findByCodigo(String codigo);
 	
 	Optional<SucursalModel>findByNombre(String nombre);
+	
+	@Query(value = "select * from sucursal where id=?",nativeQuery=true)
+	SucursalModel getId(Long id);
 
 }

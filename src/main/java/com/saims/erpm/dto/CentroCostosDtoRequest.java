@@ -7,6 +7,6 @@ public class CentroCostosDtoRequest {
 	private String codigo;
 	private String nombre;
 	private String prefijo;
-	private String estado;
+	private boolean estado;
 
 }

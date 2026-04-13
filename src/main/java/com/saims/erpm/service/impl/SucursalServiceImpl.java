@@ -24,7 +24,7 @@ public class SucursalServiceImpl implements SucursalService {
 
     private final SucursalDao sucursalDao;
     private final ModelMapper modelMapper;
-    private Personalizer personalizer;
+    private Personalizer personalizer = new Personalizer();
 
     // =========================
     // 🟢 CREATE
@@ -63,7 +63,7 @@ public class SucursalServiceImpl implements SucursalService {
     	sucursal.setCodigo(this.personalizer.normalizer(response.getCodigo()));
     	sucursal.setPrefijo(this.personalizer.generatePrefijo(response.getPrefijo()));
     	this.sucursalDao.save(sucursal);
-        return (this.mapToDto(sucursal));
+        return (this.modelToResponse(sucursal));
     }
 
     // =========================
@@ -79,7 +79,7 @@ public class SucursalServiceImpl implements SucursalService {
     	SucursalModel sucursal =  this.sucursalDao.findById(id)
                 .orElseThrow(() -> new RuntimeException("Sucursal no encontrada con ID: " + id));
         
-        return (this.mapToDto(sucursal));
+        return (this.modelToResponse(sucursal));
     }
     
 
@@ -88,7 +88,7 @@ public class SucursalServiceImpl implements SucursalService {
      */
     public List<SucursalDtoResponse> getAll() {
     	List<SucursalDtoResponse> sucursales = this.sucursalDao.findAll().stream()
-    			.map(sucursal->this.mapToDto(sucursal))
+    			.map(sucursal->this.modelToResponse(sucursal))
     			.collect(Collectors.toList());
         return sucursales;
     }
@@ -99,7 +99,7 @@ public class SucursalServiceImpl implements SucursalService {
     public SucursalDtoResponse getByCodigo(String codigo) {
     	SucursalModel sucursal = sucursalDao.findByCodigo(this.personalizer.normalizer(codigo))
         .orElseThrow(() -> new RuntimeException("Sucursal no encontrada con código: " + codigo));
-        return this.mapToDto(sucursal) ;
+        return this.modelToResponse(sucursal) ;
     }
     /**
      * 📌 Búsqueda por nombre
@@ -110,7 +110,7 @@ public class SucursalServiceImpl implements SucursalService {
         SucursalModel sucursal = this.sucursalDao.findByNombre(this.personalizer.normalizer(nombre))
                 .orElseThrow(() -> new RuntimeException("Sucursal no encontrada"));
 
-        return this.mapToDto(sucursal);
+        return this.modelToResponse(sucursal);
     }
 
     /**
@@ -137,7 +137,7 @@ public class SucursalServiceImpl implements SucursalService {
         sucursal.setPrefijo(this.personalizer.generatePrefijo(response.getPrefijo()));
         this.sucursalDao.save(sucursal);
 
-        return this.mapToDto(sucursal);
+        return this.modelToResponse(sucursal);
     }
 
     // =========================
@@ -157,7 +157,7 @@ public class SucursalServiceImpl implements SucursalService {
     // 🔴 Metodos Auxiliares
     // =========================
     
-    private SucursalDtoResponse mapToDto(SucursalModel sucursal) {
+    private SucursalDtoResponse modelToResponse(SucursalModel sucursal) {
     	return (this.modelMapper.map(sucursal, SucursalDtoResponse.class));
     }
     

@@ -2,6 +2,7 @@ package com.saims.erpm.service;
 
 import java.util.List;
 
+import com.saims.erpm.dto.SucursalAreaCentroCostosDtoResponse;
 import com.saims.erpm.model.AreaModel;
 import com.saims.erpm.model.CentroCostosModel;
 import com.saims.erpm.model.SucursalAreaCentroCostosModel;
@@ -57,7 +58,7 @@ public interface SucursalAreaCentroCostosService {
      *
      * @return Lista de todas las relaciones
      */
-    List<SucursalAreaCentroCostosModel> getAll();
+    List<SucursalAreaCentroCostosDtoResponse> getAll();
 
     /**
      * 📌 Obtiene registros filtrados por sucursal.
@@ -66,6 +67,8 @@ public interface SucursalAreaCentroCostosService {
      * @return Lista de relaciones asociadas
      */
     List<SucursalAreaCentroCostosModel> getBySucursal(Long sucursalId);
+    
+    List<SucursalAreaCentroCostosModel>findAll ();
 
     /**
      * 📌 Obtiene registros filtrados por área.

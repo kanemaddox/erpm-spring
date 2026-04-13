@@ -23,7 +23,7 @@ public class PersonaServiceImpl implements PersonaService {
 
     private final PersonaDao personaDao;
     private final ModelMapper modelMapper;
-    private Personalizer personalizer;
+    private Personalizer personalizer = new Personalizer();
     /**
      * Crea una persona o la obtiene si ya existe mediante IDP
      * 
@@ -33,8 +33,8 @@ public class PersonaServiceImpl implements PersonaService {
     @Transactional
     public PersonaModel createOrGet(DatosDtoRequest datosDtoRequest) {
 
-        String idp = this.personalizer.normalizer(datosDtoRequest.getIdp());
-
+    	String idp = this.personalizer.normalizerIdp(datosDtoRequest.getIdp());
+        
         PersonaModel personaModel = personaDao.findByIdp(idp)
                 .orElseGet(() -> {
                     PersonaModel nuevo = new PersonaModel();
@@ -88,7 +88,7 @@ public class PersonaServiceImpl implements PersonaService {
     @Transactional
     public PersonaDtoResponse getById(Long id) {
         PersonaModel persona = this.personaDao.getId(id);
-        return this.mapToDto(persona);
+        return this.modelToResponse(persona);
     }
 
     /**
@@ -100,7 +100,7 @@ public class PersonaServiceImpl implements PersonaService {
         PersonaModel persona = personaDao.findByIdp(this.personalizer.normalizer(idp))
                 .orElseThrow(() -> new RuntimeException("Persona no encontrada"));
 
-        return this.mapToDto(persona);
+        return this.modelToResponse(persona);
     }
 
     /**
@@ -110,8 +110,13 @@ public class PersonaServiceImpl implements PersonaService {
     public List<PersonaDtoResponse> getAll() {
 
         return personaDao.findAll().stream()
-                .map(persona -> this.mapToDto(persona))
+                .map(persona -> this.modelToResponse(persona))
                 .collect(Collectors.toList());
+    }
+    
+    @Transactional
+    public List<PersonaModel>findAll(){
+    	return this.personaDao.findAll();
     }
 
     /**
@@ -127,10 +132,13 @@ public class PersonaServiceImpl implements PersonaService {
         persona.setPaterno(this.personalizer.normalizerName(request.getPaterno()));
         persona.setMaterno(this.personalizer.normalizerName(request.getMaterno()));
         persona.setEmail(this.personalizer.normalizerLower(request.getEmail()));
+        persona.setFechaNacimiento(request.getFechaNacimiento());
+        persona.setCelular(request.getCelular());
+        persona.setSexo(request.getSexo());
 
         this.personaDao.save(persona);
 
-        return this.mapToDto(persona);
+        return this.modelToResponse(persona);
     }
 
     /**
@@ -149,7 +157,7 @@ public class PersonaServiceImpl implements PersonaService {
         return this.personaDao.findByIdp(this.personalizer.normalizer(idp)).isPresent();
     }
     
-    private PersonaDtoResponse mapToDto(PersonaModel persona) {
+    private PersonaDtoResponse modelToResponse(PersonaModel persona) {
     	return (this.modelMapper.map(persona, PersonaDtoResponse.class));
     }
     

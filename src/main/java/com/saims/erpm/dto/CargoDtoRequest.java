@@ -6,4 +6,5 @@ import lombok.Data;
 public class CargoDtoRequest {
 
 	private String nombre;
+	private boolean estado;
 }

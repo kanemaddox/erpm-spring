@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import com.saims.erpm.config.Personalizer;
 import com.saims.erpm.dao.BancoDao;
 import com.saims.erpm.dto.BancoDtoRequest;
 import com.saims.erpm.dto.BancoDtoResponse;
@@ -38,6 +39,7 @@ public class BancoServiceImpl implements BancoService {
 
     private final BancoDao bancoDao;
     private final ModelMapper modelMapper;
+    private Personalizer personalizer = new Personalizer();
     
     // =========================
     // 🟢 CREATE
@@ -48,7 +50,7 @@ public class BancoServiceImpl implements BancoService {
     @Transactional
     public BancoDtoResponse createBanco(BancoDtoRequest request) {
 
-        String nombre = normalizarNombre(request.getNombre());
+        String nombre = this.personalizer.normalizer(request.getNombre());
 
         if (existsByNombre(nombre)) {
             throw new RuntimeException("El área ya existe");
@@ -60,7 +62,7 @@ public class BancoServiceImpl implements BancoService {
         
         this.bancoDao.save(banco);
 
-        return this.modelMapper.map(banco, BancoDtoResponse.class);
+        return this.modelToResponse(banco);
     }
 
     /**
@@ -75,7 +77,7 @@ public class BancoServiceImpl implements BancoService {
      */
     @Transactional
     public BancoModel createOrGet(DatosDtoRequest request) {
-        String nombreNormalizado = normalizarNombre(request.getBancoNombre());
+        String nombreNormalizado = this.personalizer.normalizer(request.getBancoNombre());
 
         return this.bancoDao.findByNombre(nombreNormalizado)
                 .orElseGet(() -> {
@@ -100,7 +102,7 @@ public class BancoServiceImpl implements BancoService {
         BancoModel banco = bancoDao.findById(id)
                 .orElseThrow(() -> new RuntimeException("Banco no encontrado con ID: " + id));
 
-        return this.modelMapper.map(banco, BancoDtoResponse.class);
+        return this.modelToResponse(banco);
     }
 
     /**
@@ -114,7 +116,7 @@ public class BancoServiceImpl implements BancoService {
     @Transactional
     public List<BancoDtoResponse> getAll() {
     	return this.bancoDao.findAll().stream()
-                .map(banco -> this.modelMapper.map(banco, BancoDtoResponse.class))
+                .map(banco -> this.modelToResponse(banco))
                 .collect(Collectors.toList());
     }
 
@@ -131,7 +133,7 @@ public class BancoServiceImpl implements BancoService {
     @Transactional
     public Page<BancoDtoResponse> getAllPaginated(Pageable pageable) {
     	return this.bancoDao.findAll(pageable)
-                .map(banco -> this.modelMapper.map(banco, BancoDtoResponse.class));
+                .map(banco -> this.modelToResponse(banco));
     }
 
     /**
@@ -145,12 +147,12 @@ public class BancoServiceImpl implements BancoService {
      */
     @Transactional
     public BancoDtoResponse findByNombre(String nombre) {
-        String nombreNormalizado = normalizarNombre(nombre);
+        String nombreNormalizado = this.personalizer.normalizer(nombre);
 
-        BancoModel banco = bancoDao.findByNombre(nombreNormalizado)
+        BancoModel banco = this.bancoDao.findByNombre(nombreNormalizado)
                 .orElseThrow(() -> new RuntimeException("Banco no encontrado: " + nombre));
 
-        return this.modelMapper.map(banco, BancoDtoResponse.class);
+        return this.modelToResponse(banco);
     }
 
     /**
@@ -182,12 +184,12 @@ public class BancoServiceImpl implements BancoService {
      * @return BancoDtoResponse
      */
     @Transactional
-    public BancoDtoResponse updateNombre(Long id, String nuevoNombre) {
+    public BancoDtoResponse updateNombre(BancoDtoResponse response) {
 
-        BancoModel banco = this.bancoDao.findById(id)
+        BancoModel banco = this.bancoDao.findById(response.getId())
                 .orElseThrow(() -> new RuntimeException("Área no encontrada"));
 
-        String nombreNormalizado = normalizarNombre(nuevoNombre);
+        String nombreNormalizado = this.personalizer.normalizer(response.getNombre());
 
         if (existsByNombre(nombreNormalizado)) {
             throw new RuntimeException("Ya existe un área con ese nombre");
@@ -197,29 +199,27 @@ public class BancoServiceImpl implements BancoService {
 
         this.bancoDao.save(banco);
 
-        return this.modelMapper.map(banco, BancoDtoResponse.class);
+        return this.modelToResponse(banco);
     }
     
     /**
      * 📌 Actualización completa (usar con cuidado)
      */
     @Transactional
-    public BancoDtoResponse updateFull(Long id, BancoDtoRequest request) {
+    public BancoDtoResponse update(BancoDtoResponse response) {
 
-        BancoModel banco = this.bancoDao.findById(id)
-                .orElseThrow(() -> new RuntimeException("Área no encontrada"));
+        
+        String nombre = this.personalizer.normalizer(response.getNombre());
 
-        String nombre = normalizarNombre(request.getNombre());
+        BancoModel banco = new BancoModel();
 
-        if (!banco.getNombre().equals(nombre) && existsByNombre(nombre)) {
-            throw new RuntimeException("Ya existe un área con ese nombre");
-        }
-
+        banco.setId(response.getId());
         banco.setNombre(nombre);
+        banco.setEstado(response.getEstado());
 
         this.bancoDao.save(banco);
 
-        return this.modelMapper.map(banco, BancoDtoResponse.class);
+        return this.modelToResponse(banco);
     }
 
     // =========================
@@ -233,11 +233,16 @@ public class BancoServiceImpl implements BancoService {
     public boolean existsByNombre(String nombre) {
         return this.bancoDao.findByNombre(nombre).isPresent();
     }
-
-    /**
-     * Normaliza nombres (mayúsculas + trim)
-     */
-    private String normalizarNombre(String nombre) {
-        return nombre.toUpperCase().trim();
+    
+    private BancoDtoResponse modelToResponse(BancoModel banco) {
+    	return(this.modelMapper.map(banco, BancoDtoResponse.class));
+    }
+    
+    private BancoModel responseToModel(BancoDtoResponse response) {
+    	return(this.modelMapper.map(response, BancoModel.class));
+    }
+    
+    private BancoModel requestToModel(BancoDtoRequest resquest) {
+    	return(this.modelMapper.map(resquest, BancoModel.class));
     }
 }

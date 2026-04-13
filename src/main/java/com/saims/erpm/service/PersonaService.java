@@ -61,6 +61,8 @@ public interface PersonaService {
      * @return Lista de PersonaDtoResponse con todas las personas.
      */
     List<PersonaDtoResponse> getAll();
+    
+    List<PersonaModel>findAll();
 
     /**
      * Actualiza la información de una persona existente.

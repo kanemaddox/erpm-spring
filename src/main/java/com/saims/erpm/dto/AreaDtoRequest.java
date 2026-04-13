@@ -6,4 +6,5 @@ import lombok.Data;
 public class AreaDtoRequest {
 
 	private String nombre;
+	private boolean estado;
 }

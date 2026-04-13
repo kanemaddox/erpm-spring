@@ -5,15 +5,16 @@ import java.util.stream.Collectors;
 
 //import org.hibernate.internal.util.collections.AbstractPagedArray.Page;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
-
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.saims.erpm.config.Personalizer;
 import com.saims.erpm.dao.AreaDao;
 import com.saims.erpm.dto.AreaDtoRequest;
 import com.saims.erpm.dto.AreaDtoResponse;
 import com.saims.erpm.dto.DatosDtoRequest;
+import com.saims.erpm.enums.Estado;
 import com.saims.erpm.model.AreaModel;
 import com.saims.erpm.service.AreaService;
 
@@ -26,6 +27,7 @@ public class AreaServiceImpl implements AreaService {
 
     private final AreaDao areaDao;
     private final ModelMapper modelMapper;
+    private Personalizer personalizer = new Personalizer();
 
     // =========================
     // 🟢 CREATE
@@ -37,7 +39,7 @@ public class AreaServiceImpl implements AreaService {
     @Transactional
     public AreaDtoResponse createArea(AreaDtoRequest request) {
 
-        String nombre = normalizarNombre(request.getNombre());
+        String nombre = this.personalizer.normalizer(request.getNombre());
 
         if (existsByNombre(nombre)) {
             throw new RuntimeException("El área ya existe");
@@ -49,7 +51,7 @@ public class AreaServiceImpl implements AreaService {
 
         this.areaDao.save(area);
 
-        return this.modelMapper.map(area, AreaDtoResponse.class);
+        return this.modelToResponse(area);
     }
 
     /**
@@ -58,7 +60,7 @@ public class AreaServiceImpl implements AreaService {
     @Transactional
     public AreaModel createOrGet(DatosDtoRequest request) {
 
-        String nombre = normalizarNombre(request.getNombreArea());
+        String nombre = this.personalizer.normalizer(request.getNombreArea());
 
         return this.areaDao.findByNombre(nombre)
                 .orElseGet(() -> {
@@ -82,30 +84,35 @@ public class AreaServiceImpl implements AreaService {
         AreaModel area = this.areaDao.findById(id)
                 .orElseThrow(() -> new RuntimeException("Área no encontrada con ID: " + id));
 
-        return this.modelMapper.map(area, AreaDtoResponse.class);
-    }
-
-    /**
-     * 📌 Lista todas las áreas activas
-     */
-    @Transactional
-    public List<AreaDtoResponse> getAllActive() {
-
-        return this.areaDao.findAll().stream()
-                .filter(AreaModel::getEstado) // 🔥 solo activos
-                .map(area -> this.modelMapper.map(area, AreaDtoResponse.class))
-                .collect(Collectors.toList());
+        return this.modelToResponse(area);
     }
     
     /**
      * 📌 Lista todas las áreas
      */
     @Transactional
-    public List<AreaDtoResponse> getAll() {
-
-        return this.areaDao.findAll().stream()
-                .map(area -> this.modelMapper.map(area, AreaDtoResponse.class))
+    public List<AreaDtoResponse> findByAll(Estado estado) {
+    	
+    	List<AreaDtoResponse>areas = null;
+    	switch(estado) {
+    		case ACTIVO:
+    			areas = this.areaDao.findByEstado(true).stream()
+    			.map(area->this.modelToResponse(area))
+    			.collect(Collectors.toList());
+    			break;
+    		case INACTIVO:
+    			areas = this.areaDao.findByEstado(false).stream()
+    			.map(area->this.modelToResponse(area))
+    			.collect(Collectors.toList());
+    			break;
+    		case TODOS:
+    			areas = this.areaDao.findAll().stream()
+                .map(area -> this.modelToResponse(area))
                 .collect(Collectors.toList());
+    			break;
+    	}
+
+        return areas;
     }
 
     /**
@@ -114,10 +121,10 @@ public class AreaServiceImpl implements AreaService {
     @Transactional
     public AreaDtoResponse findByNombre(String nombre) {
 
-        AreaModel area = this.areaDao.findByNombre(normalizarNombre(nombre))
+        AreaModel area = this.areaDao.findByNombre(this.personalizer.normalizer(nombre))
                 .orElseThrow(() -> new RuntimeException("Área no encontrada"));
 
-        return this.modelMapper.map(area, AreaDtoResponse.class);
+        return this.modelToResponse(area);
     }
 
     /**
@@ -126,7 +133,7 @@ public class AreaServiceImpl implements AreaService {
     @Transactional
     public Page<AreaDtoResponse> getAllPaginated(Pageable pageable) {
         return this.areaDao.findAll(pageable)
-                .map(area -> this.modelMapper.map(area, AreaDtoResponse.class));
+                .map(area -> this.modelToResponse(area));
     }
 
     // =========================
@@ -137,12 +144,12 @@ public class AreaServiceImpl implements AreaService {
      * 📌 Actualización parcial (RECOMENDADO)
      */
     @Transactional
-    public AreaDtoResponse updateNombre(Long id, String nuevoNombre) {
+    public AreaDtoResponse updateNombre(AreaDtoResponse response) {
 
-        AreaModel area = this.areaDao.findById(id)
+        AreaModel area = this.areaDao.findById(response.getId())
                 .orElseThrow(() -> new RuntimeException("Área no encontrada"));
 
-        String nombreNormalizado = normalizarNombre(nuevoNombre);
+        String nombreNormalizado = this.personalizer.normalizer(response.getNombre());
 
         if (existsByNombre(nombreNormalizado)) {
             throw new RuntimeException("Ya existe un área con ese nombre");
@@ -152,19 +159,19 @@ public class AreaServiceImpl implements AreaService {
 
         this.areaDao.save(area);
 
-        return modelMapper.map(area, AreaDtoResponse.class);
+        return this.modelToResponse(area);
     }
 
     /**
      * 📌 Actualización completa (usar con cuidado)
      */
     @Transactional
-    public AreaDtoResponse updateFull(Long id, AreaDtoRequest request) {
+    public AreaDtoResponse update(AreaDtoResponse response) {
 
-        AreaModel area = this.areaDao.findById(id)
+        AreaModel area = this.areaDao.findById(response.getId())
                 .orElseThrow(() -> new RuntimeException("Área no encontrada"));
 
-        String nombre = normalizarNombre(request.getNombre());
+        String nombre = this.personalizer.normalizer(response.getNombre());
 
         if (!area.getNombre().equals(nombre) && existsByNombre(nombre)) {
             throw new RuntimeException("Ya existe un área con ese nombre");
@@ -174,7 +181,7 @@ public class AreaServiceImpl implements AreaService {
 
         this.areaDao.save(area);
 
-        return this.modelMapper.map(area, AreaDtoResponse.class);
+        return this.modelToResponse(area);
     }
 
     // =========================
@@ -202,14 +209,12 @@ public class AreaServiceImpl implements AreaService {
     /**
      * 📌 Verifica existencia por nombre
      */
-    public boolean existsByNombre(String nombre) {
+    public  boolean existsByNombre(String nombre) {
         return this.areaDao.findByNombre(nombre).isPresent();
     }
-
-    /**
-     * 📌 Normaliza texto (clave para evitar duplicados)
-     */
-    private String normalizarNombre(String nombre) {
-        return nombre.toUpperCase().trim();
+    
+    private AreaDtoResponse modelToResponse(AreaModel area) {
+    	return (this.modelMapper.map(area, AreaDtoResponse.class));
     }
+    
 }

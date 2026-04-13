@@ -15,6 +15,8 @@ public interface AreaDao extends JpaRepository<AreaModel, Long>{
 	// Jpa automatizado
 	Optional<AreaModel>findByNombre(String nombre);
 	
+	Optional<AreaModel>findByEstado(boolean estado);
+	
 	@Query(value = "select * from area where id=?",nativeQuery=true)
 	AreaModel getId(Long id);
 	

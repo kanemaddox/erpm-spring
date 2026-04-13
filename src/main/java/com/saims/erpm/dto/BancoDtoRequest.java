@@ -6,5 +6,6 @@ import lombok.Data;
 public class BancoDtoRequest {
 	
 	private String Nombre;
+	private boolean estado;
 
 }
